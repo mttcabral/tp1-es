@@ -27,7 +27,7 @@ class SignUpForm(BootstrapFormMixin, UserCreationForm):
         fields = ('username', 'email')
 
     def clean_email(self):
-        email = self.cleaned_data['email']
+        email = self.cleaned_data['email'].lower()
         if User.objects.filter(email__iexact=email).exists():
             raise forms.ValidationError('Já existe um usuário com este e-mail.')
         return email
