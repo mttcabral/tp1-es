@@ -8,13 +8,13 @@ Objetivo, histórias de usuário e instruções de execução estão no [README]
 - Frontend: templates do Django + Bootstrap 5.3 via CDN (sem build de JS)
 - `config/`: settings e URLs do projeto
 - `accounts/`: cadastro, login e logout (usa o `User` padrão do `django.contrib.auth`)
-- `itens/`: itens, comentários e reivindicações
+- `items/`: itens, comentários e reivindicações
 - `templates/base.html`: layout comum; toda página faz `{% extends 'base.html' %}` e preenche `{% block content %}`
 - `static/css/style.css`: só ajustes pontuais sobre o Bootstrap
 
 ## Convenções de código
-- Textos da interface em português do Brasil
-- Nomes de models e campos do domínio em português (`Item`, `Comentario`, `Reivindicacao`)
+- **Todo o código em inglês**: nomes de apps, models, campos, variáveis, funções, URLs nomeadas e comentários (ex.: `Item`, `Comment`, `Claim`; campos `title`, `location`, `status`)
+- **Textos da interface em português do Brasil**: templates, labels (`verbose_name`), mensagens e choices exibidos ao usuário
 - Preferir recursos prontos do Django (class-based views, `ModelForm`, `django.contrib.auth`, `messages`) a código próprio
 - Views que exigem usuário logado usam `LoginRequiredMixin`/`@login_required`
 - Testes automatizados estão fora do escopo do TP1: não criar
