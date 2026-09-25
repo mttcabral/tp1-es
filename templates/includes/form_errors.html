@@ -1,0 +1,4 @@
+{# Errors not tied to a field (e.g. wrong username or password) #}
+{% for error in form.non_field_errors %}
+  <div class="alert alert-danger" role="alert">{{ error }}</div>
+{% endfor %}

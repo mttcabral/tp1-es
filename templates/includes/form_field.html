@@ -1,0 +1,11 @@
+{# Renders one form field with Bootstrap label, errors and help text #}
+<div class="mb-3">
+  <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+  {{ field }}
+  {% for error in field.errors %}
+    <div class="invalid-feedback">{{ error }}</div>
+  {% endfor %}
+  {% if field.help_text %}
+    <div class="form-text">{{ field.help_text|safe }}</div>
+  {% endif %}
+</div>
