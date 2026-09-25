@@ -30,3 +30,17 @@ O Perdi e Achei tem como objetivo facilitar a recuperação de itens perdidos de
 6. Como dono de um item, quero ver as reivindicações recebidas e aceitar ou recusar cada uma, atualizando automaticamente o status do item para resolvido quando aceita.
 7. Como usuário, quero ver um painel pessoal com meus itens cadastrados e minhas reivindicações feitas.
 8. Como usuário, quero ver os itens mais recentes na página inicial ao acessar o sistema.
+## Como executar
+
+Pré-requisito: Python 3.12+.
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate        # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py createsuperuser # opcional, para acessar /admin/
+python manage.py runserver
+```
+
+O sistema fica disponível em http://127.0.0.1:8000/ e o painel administrativo em http://127.0.0.1:8000/admin/.
