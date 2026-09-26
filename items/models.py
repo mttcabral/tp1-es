@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.db import models
 from django.urls import reverse
+from django.utils import timezone
 
 
 class Item(models.Model):
@@ -34,6 +35,12 @@ class Item(models.Model):
         SPORTS_CENTER = 'sports_center', 'Centro Esportivo'
         OTHER = 'other', 'Outro'
 
+    class Period(models.TextChoices):
+        MORNING = 'morning', 'Manhã'
+        AFTERNOON = 'afternoon', 'Tarde'
+        NIGHT = 'night', 'Noite'
+        __empty__ = 'Não sei'
+
     class Status(models.TextChoices):
         OPEN = 'open', 'Aberto'
         RESOLVED = 'resolved', 'Resolvido'
@@ -45,6 +52,8 @@ class Item(models.Model):
     )
     category = models.CharField('categoria', max_length=20, choices=Category.choices)
     location = models.CharField('local', max_length=20, choices=Location.choices)
+    occurred_on = models.DateField('data do ocorrido', default=timezone.localdate)
+    occurred_period = models.CharField('turno', max_length=10, choices=Period.choices, blank=True)
     photo = models.ImageField('foto', upload_to='items/', blank=True)
     status = models.CharField('status', max_length=10, choices=Status.choices, default=Status.OPEN)
     author = models.ForeignKey(
