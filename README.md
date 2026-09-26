@@ -73,6 +73,33 @@ classDiagram
     Item *-- Claim : 0..* claims
 ```
 
+### Diagramas de estados
+
+Ciclo de vida de um item e de uma reivindicação. Aceitar uma reivindicação resolve o item e recusa automaticamente as outras reivindicações pendentes dele (US6).
+
+```mermaid
+stateDiagram-v2
+    direction LR
+    state "Aberto (open)" as open
+    state "Resolvido (resolved)" as resolved
+    [*] --> open : item cadastrado
+    open --> resolved : dono aceita uma reivindicação
+    resolved --> [*]
+```
+
+```mermaid
+stateDiagram-v2
+    direction LR
+    state "Pendente (pending)" as pending
+    state "Aceita (accepted)" as accepted
+    state "Recusada (rejected)" as rejected
+    [*] --> pending : reivindicação criada
+    pending --> accepted : dono aceita
+    pending --> rejected : dono recusa ou aceita outra
+    accepted --> [*]
+    rejected --> [*]
+```
+
 ## Como executar
 
 Pré-requisito: Python 3.12+.
