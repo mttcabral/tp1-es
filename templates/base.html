@@ -19,11 +19,12 @@
       </button>
       <div class="collapse navbar-collapse" id="navbarMain">
         <ul class="navbar-nav me-auto">
-          <li class="nav-item"><a class="nav-link" href="{% url 'home' %}">Início</a></li>
-          {% if user.is_authenticated %}
-            <li class="nav-item"><a class="nav-link" href="{% url 'item_create' %}">Cadastrar item</a></li>
-          {% endif %}
-        </ul>
+  <li class="nav-item"><a class="nav-link" href="{% url 'home' %}">Início</a></li>
+  <li class="nav-item"><a class="nav-link" href="{% url 'item_list' %}">Buscar itens</a></li>
+  {% if user.is_authenticated %}
+    <li class="nav-item"><a class="nav-link" href="{% url 'item_create' %}">Cadastrar item</a></li>
+  {% endif %}
+</ul>
         <ul class="navbar-nav align-items-md-center">
           {% if user.is_authenticated %}
             <li class="nav-item"><span class="navbar-text me-md-2">Olá, <strong>{{ user.username }}</strong></span></li>
