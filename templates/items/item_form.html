@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block title %}Cadastrar item · Perdi e Achei{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8 col-lg-6">
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <h1 class="h3 mb-4">Cadastrar item</h1>
+        {# multipart/form-data is required for the browser to send the photo #}
+        <form method="post" enctype="multipart/form-data" novalidate>
+          {% csrf_token %}
+          {% include 'includes/form_errors.html' %}
+          {% for field in form %}
+            {% include 'includes/form_field.html' %}
+          {% endfor %}
+          <button type="submit" class="btn btn-primary w-100">Cadastrar</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

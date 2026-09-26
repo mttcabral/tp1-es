@@ -20,6 +20,9 @@
       <div class="collapse navbar-collapse" id="navbarMain">
         <ul class="navbar-nav me-auto">
           <li class="nav-item"><a class="nav-link" href="{% url 'home' %}">Início</a></li>
+          {% if user.is_authenticated %}
+            <li class="nav-item"><a class="nav-link" href="{% url 'item_create' %}">Cadastrar item</a></li>
+          {% endif %}
         </ul>
         <ul class="navbar-nav align-items-md-center">
           {% if user.is_authenticated %}

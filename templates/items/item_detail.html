@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ item.title }} · Perdi e Achei{% endblock %}
+
+{% block content %}
+<section class="card shadow-sm mb-4" id="item-info">
+  <div class="row g-0">
+    <div class="col-md-5">
+      {% if item.photo %}
+        <img src="{{ item.photo.url }}" class="img-fluid rounded-start item-photo" alt="Foto de {{ item.title }}">
+      {% else %}
+        <div class="item-photo d-flex align-items-center justify-content-center bg-secondary-subtle text-secondary rounded-start">
+          Sem foto
+        </div>
+      {% endif %}
+    </div>
+    <div class="col-md-7">
+      <div class="card-body p-4">
+        <div class="mb-2">
+          <span class="badge {% if item.kind == 'lost' %}text-bg-danger{% else %}text-bg-success{% endif %}">
+            {{ item.get_kind_display }}
+          </span>
+          <span class="badge {% if item.status == 'open' %}text-bg-primary{% else %}text-bg-secondary{% endif %}">
+            {{ item.get_status_display }}
+          </span>
+        </div>
+        <h1 class="h3">{{ item.title }}</h1>
+        <p class="card-text">{{ item.description|linebreaksbr }}</p>
+        <dl class="row mb-0">
+          <dt class="col-sm-4">Categoria</dt>
+          <dd class="col-sm-8">{{ item.get_category_display }}</dd>
+          <dt class="col-sm-4">Local</dt>
+          <dd class="col-sm-8">{{ item.get_location_display }}</dd>
+          <dt class="col-sm-4">{{ item.get_kind_display }} em</dt>
+          <dd class="col-sm-8">
+            {{ item.occurred_on|date:'d/m/Y' }}{% if item.occurred_period %} ({{ item.get_occurred_period_display|lower }}){% endif %}
+          </dd>
+          <dt class="col-sm-4">Cadastrado por</dt>
+          <dd class="col-sm-8">{{ item.author.username }}</dd>
+          <dt class="col-sm-4">Cadastrado em</dt>
+          <dd class="col-sm-8">{{ item.created_at|date:'d/m/Y H:i' }}</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+</section>
+
+{# Claims (#5) and comments (#4) will be added as new sections below #}
+{% endblock %}
