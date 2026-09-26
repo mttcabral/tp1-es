@@ -30,6 +30,49 @@ O Perdi e Achei tem como objetivo facilitar a recuperação de itens perdidos de
 6. Como dono de um item, quero ver as reivindicações recebidas e aceitar ou recusar cada uma, atualizando automaticamente o status do item para resolvido quando aceita.
 7. Como usuário, quero ver um painel pessoal com meus itens cadastrados e minhas reivindicações feitas.
 8. Como usuário, quero ver os itens mais recentes na página inicial ao acessar o sistema.
+## Documentação UML
+
+Documentação preliminar do sistema. Os diagramas refletem o model `Item` (US2) e o que está planejado nas issues para `Comment` (US4) e `Claim` (US5/US6). Eles serão ajustados conforme a implementação avançar.
+
+### Diagrama de classes
+
+Entidades persistidas no banco. `User` é o usuário padrão do `django.contrib.auth`. Cada usuário tem 0..* itens (campo `author` do `Item`), e comentários e reivindicações também apontam para um usuário (`author` e `claimant`). O losango preto (composição) indica que comentários e reivindicações pertencem a um único item e são apagados com ele. As listas completas de categorias, locais e turnos estão em `items/models.py`.
+
+```mermaid
+classDiagram
+    class User {
+        +username: str
+        +email: str
+        +password: str
+    }
+    class Item {
+        +kind: lost | found
+        +title: str
+        +description: str
+        +category: Category
+        +location: Location
+        +occurred_on: date
+        +occurred_period: Period
+        +photo: Image
+        +status: open | resolved
+        +created_at: datetime
+    }
+    class Comment {
+        +author: User
+        +text: str
+        +created_at: datetime
+    }
+    class Claim {
+        +claimant: User
+        +message: str
+        +status: pending | accepted | rejected
+        +created_at: datetime
+    }
+    User --> Item : 0..* items
+    Item *-- Comment : 0..* comments
+    Item *-- Claim : 0..* claims
+```
+
 ## Como executar
 
 Pré-requisito: Python 3.12+.
