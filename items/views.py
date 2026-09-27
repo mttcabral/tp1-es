@@ -55,3 +55,13 @@ class ItemListView(ListView):
         context = super().get_context_data(**kwargs)
         context['filter_form'] = ItemFilterForm(self.request.GET)
         return context
+
+    
+class HomeView(ListView):
+    """Displays the most recent open lost and found items on the home page."""
+    model = Item
+    template_name = 'home.html'
+    context_object_name = 'recent_items'
+
+    def get_queryset(self):
+        return Item.objects.filter(status=Item.Status.OPEN).select_related('author').order_by('-created_at')[:8]
