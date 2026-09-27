@@ -45,6 +45,10 @@ class ClaimCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
         return super().dispatch(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
+        # Only found items can be claimed: a lost item was registered by its own owner
+        if self.item.kind != Item.Kind.FOUND:
+            messages.error(request, 'Só é possível reivindicar itens encontrados.')
+            return redirect('item_detail', pk=self.item.pk)
         if self.item.author_id == request.user.id:
             messages.error(request, 'Você não pode reivindicar um item que você mesmo cadastrou.')
             return redirect('item_detail', pk=self.item.pk)

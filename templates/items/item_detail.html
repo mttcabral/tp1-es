@@ -47,6 +47,8 @@
 
 {# Comments (#4) will be added as a new section below #}
 
+{# Only found items can be claimed: a lost item was registered by its own owner #}
+{% if item.kind == 'found' %}
 <section class="card shadow-sm" id="claim">
   <div class="card-body p-4">
     <h2 class="h4 mb-3">Reivindicar item</h2>
@@ -71,4 +73,5 @@
     {% endif %}
   </div>
 </section>
+{% endif %}
 {% endblock %}
