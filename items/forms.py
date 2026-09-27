@@ -3,7 +3,7 @@ from django.utils import timezone
 
 from config.forms import BootstrapFormMixin
 
-from .models import Item
+from .models import Comment, Item
 
 
 class ItemForm(BootstrapFormMixin, forms.ModelForm):
@@ -23,3 +23,13 @@ class ItemForm(BootstrapFormMixin, forms.ModelForm):
         if occurred_on > timezone.localdate():
             raise forms.ValidationError('A data não pode estar no futuro.')
         return occurred_on
+
+
+class CommentForm(BootstrapFormMixin, forms.ModelForm):
+    class Meta:
+        model = Comment
+        # item and author are not filled in by the user
+        fields = ('text',)
+        widgets = {
+            'text': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Escreva um comentário...'}),
+        }

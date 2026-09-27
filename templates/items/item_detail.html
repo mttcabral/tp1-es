@@ -45,5 +45,39 @@
   </div>
 </section>
 
-{# Claims (#5) and comments (#4) will be added as new sections below #}
+{# Claims (#5) will be added as a new section below #}
+
+<section class="card shadow-sm" id="comments">
+  <div class="card-body p-4">
+    <h2 class="h4 mb-3">Comentários</h2>
+
+    {% if comments %}
+      <ul class="list-group mb-4">
+        {% for comment in comments %}
+          <li class="list-group-item">
+            <div class="d-flex justify-content-between">
+              <strong>{{ comment.author.username }}</strong>
+              <small class="text-muted">{{ comment.created_at|date:'d/m/Y H:i' }}</small>
+            </div>
+            <p class="mb-0">{{ comment.text|linebreaksbr }}</p>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="text-muted">Nenhum comentário ainda.</p>
+    {% endif %}
+
+    {% if user.is_authenticated %}
+      <form method="post" action="{% url 'comment_create' item.pk %}" novalidate>
+        {% csrf_token %}
+        {% for field in comment_form %}
+          {% include 'includes/form_field.html' %}
+        {% endfor %}
+        <button type="submit" class="btn btn-primary">Comentar</button>
+      </form>
+    {% else %}
+      <p class="mb-0"><a href="{% url 'login' %}">Entre</a> para comentar.</p>
+    {% endif %}
+  </div>
+</section>
 {% endblock %}
