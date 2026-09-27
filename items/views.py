@@ -4,6 +4,7 @@ from django.views.generic import CreateView, DetailView, ListView
 
 from .forms import ItemFilterForm, ItemForm
 from .models import Item
+from django.db.models import Q
 
 
 class ItemCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
@@ -20,6 +21,7 @@ class ItemCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
 class ItemDetailView(DetailView):
     # select_related fetches the author in the same query
     queryset = Item.objects.select_related('author')
+    
 
 class ItemListView(ListView):
     """Lists items with search and filtering capabilities."""

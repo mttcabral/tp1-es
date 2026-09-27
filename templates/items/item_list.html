@@ -10,7 +10,7 @@
   {% endif %}
 </div>
 
-<!-- Filtros de Busca -->
+<!-- Search and filter form -->
 <div class="card shadow-sm border-0 mb-4">
   <div class="card-body">
     <form method="get" class="row g-3">
@@ -42,16 +42,16 @@
   </div>
 </div>
 
-<!-- Listagem de Resultados -->
+<!-- Items results grid -->
 {% if items %}
   <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-3">
     {% for item in items %}
       <div class="col">
         <div class="card h-100 shadow-sm border-0">
           {% if item.photo %}
-            <img src="{{ item.photo.url }}" class="card-img-top object-fit-cover" alt="Foto de {{ item.title }}" style="height: 180px;">
+            <img src="{{ item.photo.url }}" class="card-img-top object-fit-cover item-card-img" alt="Foto de {{ item.title }}">
           {% else %}
-            <div class="bg-secondary-subtle d-flex align-items-center justify-content-center text-secondary rounded-top" style="height: 180px;">
+            <div class="bg-secondary-subtle d-flex align-items-center justify-content-center text-secondary rounded-top item-card-img">
               <span>Sem foto</span>
             </div>
           {% endif %}
@@ -77,6 +77,33 @@
       </div>
     {% endfor %}
   </div>
+
+  <!-- Pagination preserving query parameters -->
+  {% if is_paginated %}
+    <nav class="mt-4" aria-label="Navegação de páginas">
+      <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ request.GET.q }}&kind={{ request.GET.kind }}&category={{ request.GET.category }}&location={{ request.GET.location }}&status={{ request.GET.status }}">Anterior</a>
+          </li>
+        {% else %}
+          <li class="page-item disabled"><span class="page-link">Anterior</span></li>
+        {% endif %}
+
+        <li class="page-item active">
+          <span class="page-link">{{ page_obj.number }} de {{ paginator.num_pages }}</span>
+        </li>
+
+        {% if page_obj.has_next %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ request.GET.q }}&kind={{ request.GET.kind }}&category={{ request.GET.category }}&location={{ request.GET.location }}&status={{ request.GET.status }}">Próximo</a>
+          </li>
+        {% else %}
+          <li class="page-item disabled"><span class="page-link">Próximo</span></li>
+        {% endif %}
+      </ul>
+    </nav>
+  {% endif %}
 {% else %}
   <div class="alert alert-info text-center py-4 my-4" role="alert">
     Nenhum item encontrado com os filtros aplicados.
