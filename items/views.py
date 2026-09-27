@@ -20,6 +20,8 @@ class ItemCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
 class ItemDetailView(DetailView):
     # select_related fetches the author in the same query
     queryset = Item.objects.select_related('author')
+
+    
 class HomeView(ListView):
     """Displays the most recent open lost and found items on the home page."""
     model = Item
