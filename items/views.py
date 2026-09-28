@@ -1,8 +1,10 @@
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
+from django.db import transaction
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect
+from django.views import View
 from django.views.generic import CreateView, DetailView, ListView
 
 from .forms import ClaimForm, CommentForm, ItemFilterForm, ItemForm
@@ -33,6 +35,8 @@ class ItemDetailView(DetailView):
             context['has_pending_claim'] = self.object.claims.filter(
                 claimant=self.request.user, status=Claim.Status.PENDING
             ).exists()
+            if self.request.user == self.object.author and self.object.kind == Item.Kind.FOUND:
+                context['received_claims'] = self.object.claims.select_related('claimant').order_by('-created_at')
         return context
 
 
@@ -138,3 +142,51 @@ class HomeView(ListView):
 
     def get_queryset(self):
         return Item.objects.filter(status=Item.Status.OPEN).select_related('author').order_by('-created_at')[:8]
+
+
+class ClaimAcceptView(LoginRequiredMixin, View):
+    http_method_names = ['post']
+
+    def post(self, request, pk):
+        claim = get_object_or_404(Claim, pk=pk)
+        
+        if claim.item.author != request.user:
+            from django.core.exceptions import PermissionDenied
+            raise PermissionDenied
+            
+        if claim.status != Claim.Status.PENDING:
+            messages.error(request, 'Esta reivindicação não está pendente.')
+            return redirect('item_detail', pk=claim.item.pk)
+
+        with transaction.atomic():
+            claim.status = Claim.Status.ACCEPTED
+            claim.save()
+            
+            claim.item.status = Item.Status.RESOLVED
+            claim.item.save()
+            
+            Claim.objects.filter(item=claim.item, status=Claim.Status.PENDING).update(status=Claim.Status.REJECTED)
+            
+        messages.success(request, 'Reivindicação aceita com sucesso!')
+        return redirect('item_detail', pk=claim.item.pk)
+
+
+class ClaimRejectView(LoginRequiredMixin, View):
+    http_method_names = ['post']
+
+    def post(self, request, pk):
+        claim = get_object_or_404(Claim, pk=pk)
+        
+        if claim.item.author != request.user:
+            from django.core.exceptions import PermissionDenied
+            raise PermissionDenied
+            
+        if claim.status != Claim.Status.PENDING:
+            messages.error(request, 'Esta reivindicação não está pendente.')
+            return redirect('item_detail', pk=claim.item.pk)
+
+        claim.status = Claim.Status.REJECTED
+        claim.save()
+        
+        messages.success(request, 'Reivindicação recusada.')
+        return redirect('item_detail', pk=claim.item.pk)
