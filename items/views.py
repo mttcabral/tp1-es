@@ -1,10 +1,11 @@
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
+from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect
-from django.views.generic import CreateView, DetailView
+from django.views.generic import CreateView, DetailView, ListView
 
-from .forms import ClaimForm, ItemForm
+from .forms import ClaimForm, ItemFilterForm, ItemForm
 from .models import Claim, Item
 
 
@@ -71,3 +72,47 @@ class ClaimCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
 
     def get_success_url(self):
         return self.item.get_absolute_url()
+
+
+class ItemListView(ListView):
+    """Lists items with search and filtering capabilities."""
+    model = Item
+    template_name = 'items/item_list.html'
+    context_object_name = 'items'
+    paginate_by = 12
+
+    def get_queryset(self):
+        queryset = Item.objects.select_related('author').order_by('-created_at')
+        form = ItemFilterForm(self.request.GET)
+        if form.is_valid():
+            q = form.cleaned_data.get('q')
+            if q:
+                queryset = queryset.filter(Q(title__icontains=q) | Q(description__icontains=q))
+            kind = form.cleaned_data.get('kind')
+            if kind:
+                queryset = queryset.filter(kind=kind)
+            category = form.cleaned_data.get('category')
+            if category:
+                queryset = queryset.filter(category=category)
+            location = form.cleaned_data.get('location')
+            if location:
+                queryset = queryset.filter(location=location)
+            status = form.cleaned_data.get('status')
+            if status:
+                queryset = queryset.filter(status=status)
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['filter_form'] = ItemFilterForm(self.request.GET)
+        return context
+
+
+class HomeView(ListView):
+    """Displays the most recent open lost and found items on the home page."""
+    model = Item
+    template_name = 'home.html'
+    context_object_name = 'recent_items'
+
+    def get_queryset(self):
+        return Item.objects.filter(status=Item.Status.OPEN).select_related('author').order_by('-created_at')[:8]

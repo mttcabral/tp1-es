@@ -18,8 +18,9 @@
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="navbarMain">
-        <ul class="navbar-nav me-auto">
+      <ul class="navbar-nav me-auto">
           <li class="nav-item"><a class="nav-link" href="{% url 'home' %}">Início</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'item_list' %}">Buscar itens</a></li>
           {% if user.is_authenticated %}
             <li class="nav-item"><a class="nav-link" href="{% url 'item_create' %}">Cadastrar item</a></li>
           {% endif %}

@@ -33,3 +33,31 @@ class ClaimForm(BootstrapFormMixin, forms.ModelForm):
         widgets = {
             'message': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Explique por que esse item é seu...'}),
         }
+
+
+class ItemFilterForm(BootstrapFormMixin, forms.Form):
+    q = forms.CharField(
+        label='Buscar',
+        required=False,
+        widget=forms.TextInput(attrs={'placeholder': 'Título ou descrição...'}),
+    )
+    kind = forms.ChoiceField(
+        label='Tipo',
+        required=False,
+        choices=[('', 'Todos os tipos')] + list(Item.Kind.choices),
+    )
+    category = forms.ChoiceField(
+        label='Categoria',
+        required=False,
+        choices=[('', 'Todas as categorias')] + list(Item.Category.choices),
+    )
+    location = forms.ChoiceField(
+        label='Local',
+        required=False,
+        choices=[('', 'Todos os locais')] + list(Item.Location.choices),
+    )
+    status = forms.ChoiceField(
+        label='Status',
+        required=False,
+        choices=[('', 'Todos os status')] + list(Item.Status.choices),
+    )
