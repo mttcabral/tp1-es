@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block title %}Meu painel · Perdi e Achei{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Meu painel</h1>
+
+<section class="mb-5">
+  <h2 class="h4 mb-3">Meus itens cadastrados</h2>
+  {% if my_items %}
+    <div class="list-group shadow-sm">
+      {% for item in my_items %}
+        <a href="{{ item.get_absolute_url }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+          <div>
+            <h3 class="h6 mb-1">{{ item.title }}</h3>
+            <small class="text-muted">Cadastrado em {{ item.created_at|date:'d/m/Y' }}</small>
+          </div>
+          <div class="text-end">
+            <span class="badge {% if item.status == 'open' %}text-bg-primary{% else %}text-bg-secondary{% endif %} me-2">
+              {{ item.get_status_display }}
+            </span>
+            {% if item.pending_claims_count > 0 %}
+              <span class="badge text-bg-warning">
+                {{ item.pending_claims_count }} reivindicaç{% if item.pending_claims_count == 1 %}ão{% else %}ões{% endif %} pendente{% if item.pending_claims_count > 1 %}s{% endif %}
+              </span>
+            {% endif %}
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-muted">Você ainda não cadastrou nenhum item.</p>
+  {% endif %}
+</section>
+
+<section>
+  <h2 class="h4 mb-3">Minhas reivindicações</h2>
+  {% if my_claims %}
+    <div class="list-group shadow-sm">
+      {% for claim in my_claims %}
+        <a href="{{ claim.item.get_absolute_url }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+          <div>
+            <h3 class="h6 mb-1">{{ claim.item.title }}</h3>
+            <small class="text-muted">Reivindicado em {{ claim.created_at|date:'d/m/Y' }}</small>
+          </div>
+          <div>
+            <span class="badge 
+              {% if claim.status == 'pending' %}text-bg-warning
+              {% elif claim.status == 'accepted' %}text-bg-success
+              {% else %}text-bg-danger{% endif %}">
+              {{ claim.get_status_display }}
+            </span>
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-muted">Você ainda não fez nenhuma reivindicação.</p>
+  {% endif %}
+</section>
+{% endblock %}
