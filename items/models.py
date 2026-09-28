@@ -96,3 +96,22 @@ class Claim(models.Model):
 
     def __str__(self):
         return f'Reivindicação de {self.claimant} em {self.item}'
+
+
+class Comment(models.Model):
+    """A comment left by a user on an item."""
+
+    item = models.ForeignKey(Item, on_delete=models.CASCADE, related_name='comments', verbose_name='item')
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='comments', verbose_name='autor'
+    )
+    text = models.TextField('texto')
+    created_at = models.DateTimeField('criado em', auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'comentário'
+        verbose_name_plural = 'comentários'
+        ordering = ['created_at']
+
+    def __str__(self):
+        return f'Comentário de {self.author} em {self.item}'

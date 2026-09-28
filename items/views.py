@@ -5,8 +5,8 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect
 from django.views.generic import CreateView, DetailView, ListView
 
-from .forms import ClaimForm, ItemFilterForm, ItemForm
-from .models import Claim, Item
+from .forms import ClaimForm, CommentForm, ItemFilterForm, ItemForm
+from .models import Claim, Comment, Item
 
 
 class ItemCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
@@ -26,6 +26,8 @@ class ItemDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context['comments'] = self.object.comments.select_related('author')
+        context['comment_form'] = CommentForm()
         if self.request.user.is_authenticated:
             context['claim_form'] = ClaimForm()
             context['has_pending_claim'] = self.object.claims.filter(
@@ -72,6 +74,26 @@ class ClaimCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
 
     def get_success_url(self):
         return self.item.get_absolute_url()
+
+
+class CommentCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
+    model = Comment
+    form_class = CommentForm
+    success_message = 'Comentário adicionado com sucesso!'
+    # The form is embedded in the item detail page, not rendered on its own
+    http_method_names = ['post']
+
+    def form_valid(self, form):
+        form.instance.item = get_object_or_404(Item, pk=self.kwargs['pk'])
+        form.instance.author = self.request.user
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        messages.error(self.request, 'Não foi possível adicionar o comentário. O texto não pode ficar vazio.')
+        return redirect('item_detail', pk=self.kwargs['pk'])
+
+    def get_success_url(self):
+        return self.object.item.get_absolute_url()
 
 
 class ItemListView(ListView):

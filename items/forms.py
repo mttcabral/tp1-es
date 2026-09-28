@@ -3,7 +3,7 @@ from django.utils import timezone
 
 from config.forms import BootstrapFormMixin
 
-from .models import Claim, Item
+from .models import Claim, Comment, Item
 
 
 class ItemForm(BootstrapFormMixin, forms.ModelForm):
@@ -32,6 +32,16 @@ class ClaimForm(BootstrapFormMixin, forms.ModelForm):
         fields = ('message',)
         widgets = {
             'message': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Explique por que esse item é seu...'}),
+        }
+
+
+class CommentForm(BootstrapFormMixin, forms.ModelForm):
+    class Meta:
+        model = Comment
+        # item and author are not filled in by the user
+        fields = ('text',)
+        widgets = {
+            'text': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Escreva um comentário...'}),
         }
 
 
