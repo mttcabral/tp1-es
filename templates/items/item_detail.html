@@ -45,5 +45,33 @@
   </div>
 </section>
 
-{# Claims (#5) and comments (#4) will be added as new sections below #}
+{# Comments (#4) will be added as a new section below #}
+
+{# Only found items can be claimed: a lost item was registered by its own owner #}
+{% if item.kind == 'found' %}
+<section class="card shadow-sm" id="claim">
+  <div class="card-body p-4">
+    <h2 class="h4 mb-3">Reivindicar item</h2>
+    {% if user.is_authenticated %}
+      {% if item.status != 'open' %}
+        <p class="text-muted mb-0">Este item já foi resolvido e não pode mais ser reivindicado.</p>
+      {% elif user == item.author %}
+        <p class="text-muted mb-0">Você não pode reivindicar um item que você mesmo cadastrou.</p>
+      {% elif has_pending_claim %}
+        <p class="text-muted mb-0">Você já enviou uma reivindicação para este item. Aguarde a resposta do dono.</p>
+      {% else %}
+        <form method="post" action="{% url 'claim_create' item.pk %}" novalidate>
+          {% csrf_token %}
+          {% for field in claim_form %}
+            {% include 'includes/form_field.html' %}
+          {% endfor %}
+          <button type="submit" class="btn btn-primary">Isso é meu</button>
+        </form>
+      {% endif %}
+    {% else %}
+      <p class="mb-0"><a href="{% url 'login' %}">Entre</a> para reivindicar este item.</p>
+    {% endif %}
+  </div>
+</section>
+{% endif %}
 {% endblock %}

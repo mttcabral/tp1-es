@@ -3,7 +3,7 @@ from django.utils import timezone
 
 from config.forms import BootstrapFormMixin
 
-from .models import Item
+from .models import Claim, Item
 
 
 class ItemForm(BootstrapFormMixin, forms.ModelForm):
@@ -23,6 +23,18 @@ class ItemForm(BootstrapFormMixin, forms.ModelForm):
         if occurred_on > timezone.localdate():
             raise forms.ValidationError('A data não pode estar no futuro.')
         return occurred_on
+
+
+class ClaimForm(BootstrapFormMixin, forms.ModelForm):
+    class Meta:
+        model = Claim
+        # item, claimant and status are not filled in by the user
+        fields = ('message',)
+        widgets = {
+            'message': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Explique por que esse item é seu...'}),
+        }
+
+
 class ItemFilterForm(BootstrapFormMixin, forms.Form):
     q = forms.CharField(
         label='Buscar',
