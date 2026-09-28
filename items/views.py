@@ -1,11 +1,12 @@
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
+from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect
-from django.views.generic import CreateView, DetailView
+from django.views.generic import CreateView, DetailView, ListView
 
-from .forms import CommentForm, ItemForm
-from .models import Comment, Item
+from .forms import ClaimForm, CommentForm, ItemFilterForm, ItemForm
+from .models import Claim, Comment, Item
 
 
 class ItemCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
@@ -27,7 +28,52 @@ class ItemDetailView(DetailView):
         context = super().get_context_data(**kwargs)
         context['comments'] = self.object.comments.select_related('author')
         context['comment_form'] = CommentForm()
+        if self.request.user.is_authenticated:
+            context['claim_form'] = ClaimForm()
+            context['has_pending_claim'] = self.object.claims.filter(
+                claimant=self.request.user, status=Claim.Status.PENDING
+            ).exists()
         return context
+
+
+class ClaimCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
+    model = Claim
+    form_class = ClaimForm
+    success_message = 'Reivindicação enviada com sucesso!'
+    # The form is embedded in the item detail page, not rendered on its own
+    http_method_names = ['post']
+
+    def dispatch(self, request, *args, **kwargs):
+        self.item = get_object_or_404(Item, pk=self.kwargs['pk'])
+        return super().dispatch(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        # Only found items can be claimed: a lost item was registered by its own owner
+        if self.item.kind != Item.Kind.FOUND:
+            messages.error(request, 'Só é possível reivindicar itens encontrados.')
+            return redirect('item_detail', pk=self.item.pk)
+        if self.item.author_id == request.user.id:
+            messages.error(request, 'Você não pode reivindicar um item que você mesmo cadastrou.')
+            return redirect('item_detail', pk=self.item.pk)
+        if self.item.status != Item.Status.OPEN:
+            messages.error(request, 'Este item já foi resolvido e não pode mais ser reivindicado.')
+            return redirect('item_detail', pk=self.item.pk)
+        if Claim.objects.filter(item=self.item, claimant=request.user, status=Claim.Status.PENDING).exists():
+            messages.error(request, 'Você já tem uma reivindicação pendente para este item.')
+            return redirect('item_detail', pk=self.item.pk)
+        return super().post(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        form.instance.item = self.item
+        form.instance.claimant = self.request.user
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        messages.error(self.request, 'Não foi possível enviar a reivindicação. A mensagem não pode ficar vazia.')
+        return redirect('item_detail', pk=self.item.pk)
+
+    def get_success_url(self):
+        return self.item.get_absolute_url()
 
 
 class CommentCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
@@ -48,3 +94,47 @@ class CommentCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
 
     def get_success_url(self):
         return self.object.item.get_absolute_url()
+
+
+class ItemListView(ListView):
+    """Lists items with search and filtering capabilities."""
+    model = Item
+    template_name = 'items/item_list.html'
+    context_object_name = 'items'
+    paginate_by = 12
+
+    def get_queryset(self):
+        queryset = Item.objects.select_related('author').order_by('-created_at')
+        form = ItemFilterForm(self.request.GET)
+        if form.is_valid():
+            q = form.cleaned_data.get('q')
+            if q:
+                queryset = queryset.filter(Q(title__icontains=q) | Q(description__icontains=q))
+            kind = form.cleaned_data.get('kind')
+            if kind:
+                queryset = queryset.filter(kind=kind)
+            category = form.cleaned_data.get('category')
+            if category:
+                queryset = queryset.filter(category=category)
+            location = form.cleaned_data.get('location')
+            if location:
+                queryset = queryset.filter(location=location)
+            status = form.cleaned_data.get('status')
+            if status:
+                queryset = queryset.filter(status=status)
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['filter_form'] = ItemFilterForm(self.request.GET)
+        return context
+
+
+class HomeView(ListView):
+    """Displays the most recent open lost and found items on the home page."""
+    model = Item
+    template_name = 'home.html'
+    context_object_name = 'recent_items'
+
+    def get_queryset(self):
+        return Item.objects.filter(status=Item.Status.OPEN).select_related('author').order_by('-created_at')[:8]

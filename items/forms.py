@@ -3,7 +3,7 @@ from django.utils import timezone
 
 from config.forms import BootstrapFormMixin
 
-from .models import Comment, Item
+from .models import Claim, Comment, Item
 
 
 class ItemForm(BootstrapFormMixin, forms.ModelForm):
@@ -25,6 +25,16 @@ class ItemForm(BootstrapFormMixin, forms.ModelForm):
         return occurred_on
 
 
+class ClaimForm(BootstrapFormMixin, forms.ModelForm):
+    class Meta:
+        model = Claim
+        # item, claimant and status are not filled in by the user
+        fields = ('message',)
+        widgets = {
+            'message': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Explique por que esse item é seu...'}),
+        }
+
+
 class CommentForm(BootstrapFormMixin, forms.ModelForm):
     class Meta:
         model = Comment
@@ -33,3 +43,31 @@ class CommentForm(BootstrapFormMixin, forms.ModelForm):
         widgets = {
             'text': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Escreva um comentário...'}),
         }
+
+
+class ItemFilterForm(BootstrapFormMixin, forms.Form):
+    q = forms.CharField(
+        label='Buscar',
+        required=False,
+        widget=forms.TextInput(attrs={'placeholder': 'Título ou descrição...'}),
+    )
+    kind = forms.ChoiceField(
+        label='Tipo',
+        required=False,
+        choices=[('', 'Todos os tipos')] + list(Item.Kind.choices),
+    )
+    category = forms.ChoiceField(
+        label='Categoria',
+        required=False,
+        choices=[('', 'Todas as categorias')] + list(Item.Category.choices),
+    )
+    location = forms.ChoiceField(
+        label='Local',
+        required=False,
+        choices=[('', 'Todos os locais')] + list(Item.Location.choices),
+    )
+    status = forms.ChoiceField(
+        label='Status',
+        required=False,
+        choices=[('', 'Todos os status')] + list(Item.Status.choices),
+    )

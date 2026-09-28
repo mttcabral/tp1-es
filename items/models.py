@@ -73,6 +73,31 @@ class Item(models.Model):
         return reverse('item_detail', args=[self.pk])
 
 
+class Claim(models.Model):
+    """A claim of ownership made by a user on an item."""
+
+    class Status(models.TextChoices):
+        PENDING = 'pending', 'Pendente'
+        ACCEPTED = 'accepted', 'Aceita'
+        REJECTED = 'rejected', 'Recusada'
+
+    item = models.ForeignKey(Item, on_delete=models.CASCADE, related_name='claims', verbose_name='item')
+    claimant = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='claims', verbose_name='reivindicante'
+    )
+    message = models.TextField('mensagem', help_text='Explique por que esse item é seu.')
+    status = models.CharField('status', max_length=10, choices=Status.choices, default=Status.PENDING)
+    created_at = models.DateTimeField('criado em', auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'reivindicação'
+        verbose_name_plural = 'reivindicações'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'Reivindicação de {self.claimant} em {self.item}'
+
+
 class Comment(models.Model):
     """A comment left by a user on an item."""
 
