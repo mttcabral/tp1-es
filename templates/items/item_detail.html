@@ -47,14 +47,56 @@
 
 {# Only found items can be claimed: a lost item was registered by its own owner #}
 {% if item.kind == 'found' %}
+{% if user.is_authenticated and user == item.author %}
+<section class="card shadow-sm mb-4" id="received-claims">
+  <div class="card-body p-4">
+    <h2 class="h4 mb-3">Reivindicações recebidas</h2>
+    {% if received_claims %}
+      <div class="list-group">
+        {% for claim in received_claims %}
+          <div class="list-group-item">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <div>
+                <strong>{{ claim.claimant.username }}</strong>
+                <small class="text-muted ms-2">{{ claim.created_at|date:'d/m/Y H:i' }}</small>
+              </div>
+              <div>
+                <span class="badge 
+                  {% if claim.status == 'pending' %}text-bg-warning
+                  {% elif claim.status == 'accepted' %}text-bg-success
+                  {% else %}text-bg-danger{% endif %}">
+                  {{ claim.get_status_display }}
+                </span>
+              </div>
+            </div>
+            <p class="mb-3">{{ claim.message|linebreaksbr }}</p>
+            {% if claim.status == 'pending' and item.status == 'open' %}
+              <div class="d-flex gap-2">
+                <form method="post" action="{% url 'claim_accept' claim.pk %}">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-success btn-sm">Aceitar</button>
+                </form>
+                <form method="post" action="{% url 'claim_reject' claim.pk %}">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-outline-danger btn-sm">Recusar</button>
+                </form>
+              </div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="text-muted mb-0">Nenhuma reivindicação recebida ainda.</p>
+    {% endif %}
+  </div>
+</section>
+{% else %}
 <section class="card shadow-sm mb-4" id="claim">
   <div class="card-body p-4">
     <h2 class="h4 mb-3">Reivindicar item</h2>
     {% if user.is_authenticated %}
       {% if item.status != 'open' %}
         <p class="text-muted mb-0">Este item já foi resolvido e não pode mais ser reivindicado.</p>
-      {% elif user == item.author %}
-        <p class="text-muted mb-0">Você não pode reivindicar um item que você mesmo cadastrou.</p>
       {% elif has_pending_claim %}
         <p class="text-muted mb-0">Você já enviou uma reivindicação para este item. Aguarde a resposta do dono.</p>
       {% else %}
@@ -71,6 +113,7 @@
     {% endif %}
   </div>
 </section>
+{% endif %}
 {% endif %}
 
 <section class="card shadow-sm" id="comments">
