@@ -114,3 +114,33 @@ python manage.py runserver
 ```
 
 O sistema fica disponível em http://127.0.0.1:8000/ e o painel administrativo em http://127.0.0.1:8000/admin/.
+
+## Como rodar os testes
+
+Os testes de unidade/integração usam o `TestCase` do Django e a cobertura é medida com [coverage.py](https://coverage.readthedocs.io/). Os testes end-to-end (E2E) usam o [Playwright](https://playwright.dev/python/) para Python, rodando contra um servidor de teste (`StaticLiveServerTestCase`) com banco próprio.
+
+Instalação (uma vez por máquina, com o ambiente virtual ativo):
+
+```bash
+pip install -r requirements-dev.txt
+playwright install chromium
+```
+
+Se o Chromium reclamar de bibliotecas do sistema faltando (Linux/WSL), rode `playwright install --with-deps chromium`, que pede `sudo`.
+
+Testes de unidade/integração e cobertura:
+
+```bash
+python manage.py test --exclude-tag=e2e
+coverage run manage.py test --exclude-tag=e2e && coverage report
+coverage html                    # relatório navegável em htmlcov/index.html
+```
+
+Testes E2E:
+
+```bash
+python manage.py test e2e
+HEADED=1 python manage.py test e2e   # abre o navegador e desacelera os passos
+```
+
+Os testes ficam em `accounts/tests/` e `items/tests/` (um arquivo por área) e os E2E em `e2e/`, todos herdando de `e2e/base.py`. As páginas usam Bootstrap via CDN, então os E2E precisam de internet.

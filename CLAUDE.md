@@ -17,11 +17,17 @@ Objetivo, histórias de usuário e instruções de execução estão no [README]
 - **Textos da interface em português do Brasil**: templates, labels (`verbose_name`), mensagens e choices exibidos ao usuário
 - Preferir recursos prontos do Django (class-based views, `ModelForm`, `django.contrib.auth`, `messages`) a código próprio
 - Views que exigem usuário logado usam `LoginRequiredMixin`/`@login_required`
-- Testes automatizados estão fora do escopo do TP1: não criar
+
+## Testes (TP2)
+- Unidade/integração com `django.test.TestCase`, em `accounts/tests/` e `items/tests/`, um arquivo `test_<area>.py` por área
+- E2E com Playwright para Python em `e2e/`, herdando de `e2e.base.E2ETestCase` (tag `e2e`, helpers `url()` e `login()`)
+- Nomes de testes e código em inglês; docstrings explicam a regra testada
+- Cada regra de negócio tem seu próprio teste (não basta cobrir a linha)
+- Comandos e instalação: seção "Como rodar os testes" do [README](README.md)
 
 ## Regras do trabalho (obrigatórias)
 - **Um branch e um PR por issue.** Branch `tipo/N-descricao` (ex.: `feat/1-auth`) criado a partir da `main` atualizada
-- **Conventional Commits** em inglês (`feat:`, `fix:`, `docs:`, `refactor:`, `style:`, `build:`, `chore:`), com `Refs #N` no corpo
+- **Conventional Commits** em inglês (`feat:`, `fix:`, `docs:`, `refactor:`, `style:`, `test:`, `build:`, `chore:`), com `Refs #N` no corpo
 - **Máximo de 100 linhas alteradas por commit.** Exceções (ex.: código gerado pelo Django) precisam de justificativa na mensagem do commit
 - A descrição do PR tem `Closes #N`, um resumo do que foi feito e um roteiro de como testar
 - Todo PR precisa de **Approve** de outro membro antes do merge. Nunca fazer merge sem aprovação
