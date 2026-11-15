@@ -17,3 +17,7 @@ staticfiles/
 # Editores
 .vscode/
 .idea/
+
+# Cobertura de testes
+.coverage
+htmlcov/
