@@ -77,3 +77,37 @@ class ClaimCreateViewTests(TestCase):
         self.item.save()
         response = self.post_claim(self.item)
         self.assert_rejected(response, self.item, 'Este item já foi resolvido e não pode mais ser reivindicado.')
+
+    def test_duplicate_pending_claim_is_blocked(self):
+        """A user cannot send a second claim while the first one on the same item is still pending."""
+        Claim.objects.create(item=self.item, claimant=self.claimant, message='Primeira')
+        response = self.post_claim(self.item, message='Segunda')
+        self.assertRedirects(response, self.item.get_absolute_url())
+        self.assertIn(
+            'Você já tem uma reivindicação pendente para este item.',
+            [str(m) for m in get_messages(response.wsgi_request)],
+        )
+        self.assertEqual(Claim.objects.count(), 1)
+
+    def test_empty_message_shows_error_and_saves_nothing(self):
+        """The claim message is required: an empty one shows an error and nothing is saved."""
+        response = self.post_claim(self.item, message='')
+        self.assert_rejected(
+            response, self.item, 'Não foi possível enviar a reivindicação. A mensagem não pode ficar vazia.'
+        )
+
+    def test_nonexistent_item_returns_404(self):
+        """Claiming an item that does not exist returns 404."""
+        response = self.client.post(reverse('claim_create', args=[9999]), {'message': 'É minha'})
+        self.assertEqual(response.status_code, 404)
+        self.assertFalse(Claim.objects.exists())
+
+    def test_user_can_claim_again_after_rejection(self):
+        """Only pending claims block a new one: after a rejection the user can claim the item again."""
+        Claim.objects.create(
+            item=self.item, claimant=self.claimant, message='Primeira', status=Claim.Status.REJECTED
+        )
+        response = self.post_claim(self.item, message='Tenho a nota fiscal')
+        self.assertRedirects(response, self.item.get_absolute_url())
+        self.assertEqual(Claim.objects.filter(status=Claim.Status.PENDING).count(), 1)
+        self.assertEqual(Claim.objects.count(), 2)
