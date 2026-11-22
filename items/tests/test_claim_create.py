@@ -5,6 +5,8 @@ from django.urls import reverse
 
 from items.models import Claim, Item
 
+from .helpers import make_item
+
 User = get_user_model()
 
 
@@ -13,14 +15,7 @@ class ClaimCreateViewTests(TestCase):
     def setUpTestData(cls):
         cls.finder = User.objects.create_user(username='finder', password='password123')
         cls.claimant = User.objects.create_user(username='claimant', password='password123')
-        cls.item = Item.objects.create(
-            author=cls.finder,
-            kind=Item.Kind.FOUND,
-            title='Carteira marrom',
-            description='Encontrada no banco da Praça de Serviços',
-            category=Item.Category.WALLETS_BAGS,
-            location=Item.Location.SERVICES_SQUARE,
-        )
+        cls.item = make_item(cls.finder)
 
     def setUp(self):
         self.client.login(username='claimant', password='password123')
@@ -54,14 +49,7 @@ class ClaimCreateViewTests(TestCase):
 
     def test_lost_item_cannot_be_claimed(self):
         """Only found items can be claimed: a lost item was registered by its own owner."""
-        lost_item = Item.objects.create(
-            author=self.finder,
-            kind=Item.Kind.LOST,
-            title='Fone de ouvido',
-            description='Perdido no CAD 2',
-            category=Item.Category.ELECTRONICS,
-            location=Item.Location.CAD2,
-        )
+        lost_item = make_item(self.finder, kind=Item.Kind.LOST)
         response = self.post_claim(lost_item)
         self.assert_rejected(response, lost_item, 'Só é possível reivindicar itens encontrados.')
 

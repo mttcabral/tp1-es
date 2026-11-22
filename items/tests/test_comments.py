@@ -3,7 +3,9 @@ from django.contrib.messages import get_messages
 from django.test import TestCase
 from django.urls import reverse
 
-from items.models import Comment, Item
+from items.models import Comment
+
+from .helpers import make_item
 
 User = get_user_model()
 
@@ -13,14 +15,7 @@ class CommentCreateViewTests(TestCase):
     def setUpTestData(cls):
         cls.owner = User.objects.create_user(username='owner', password='password123')
         cls.visitor = User.objects.create_user(username='visitor', password='password123')
-        cls.item = Item.objects.create(
-            author=cls.owner,
-            kind=Item.Kind.FOUND,
-            title='Garrafa verde',
-            description='Encontrada na sala 2015 do ICEx',
-            category=Item.Category.BOTTLES,
-            location=Item.Location.ICEX,
-        )
+        cls.item = make_item(cls.owner)
         cls.url = reverse('comment_create', args=[cls.item.pk])
 
     def test_anonymous_user_is_redirected_to_login(self):

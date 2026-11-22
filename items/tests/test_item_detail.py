@@ -3,6 +3,8 @@ from django.test import TestCase
 
 from items.models import Claim, Item
 
+from .helpers import make_item
+
 User = get_user_model()
 
 
@@ -11,22 +13,8 @@ class ItemDetailContextTests(TestCase):
     def setUpTestData(cls):
         cls.finder = User.objects.create_user(username='finder', password='password123')
         cls.claimant = User.objects.create_user(username='claimant', password='password123')
-        cls.found_item = Item.objects.create(
-            author=cls.finder,
-            kind=Item.Kind.FOUND,
-            title='Chave com chaveiro azul',
-            description='Encontrada no balcão da Biblioteca Central',
-            category=Item.Category.KEYS,
-            location=Item.Location.CENTRAL_LIBRARY,
-        )
-        cls.lost_item = Item.objects.create(
-            author=cls.finder,
-            kind=Item.Kind.LOST,
-            title='Caderno de cálculo',
-            description='Perdido no CAD 3',
-            category=Item.Category.SCHOOL_SUPPLIES,
-            location=Item.Location.CAD3,
-        )
+        cls.found_item = make_item(cls.finder)
+        cls.lost_item = make_item(cls.finder, kind=Item.Kind.LOST)
 
     def get_detail(self, item, username=None):
         if username:
