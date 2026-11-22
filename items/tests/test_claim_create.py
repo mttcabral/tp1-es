@@ -84,6 +84,13 @@ class ClaimCreateViewTests(TestCase):
             response, self.item, 'Não foi possível enviar a reivindicação. A mensagem não pode ficar vazia.'
         )
 
+    def test_whitespace_only_message_is_treated_as_empty(self):
+        """A message made only of spaces counts as empty: the claim is rejected and nothing is saved."""
+        response = self.post_claim(self.item, message='   ')
+        self.assert_rejected(
+            response, self.item, 'Não foi possível enviar a reivindicação. A mensagem não pode ficar vazia.'
+        )
+
     def test_nonexistent_item_returns_404(self):
         """Claiming an item that does not exist returns 404."""
         response = self.client.post(reverse('claim_create', args=[9999]), {'message': 'É minha'})

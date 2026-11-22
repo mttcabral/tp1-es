@@ -45,6 +45,12 @@ class CommentCreateViewTests(TestCase):
         messages = [str(m) for m in get_messages(response.wsgi_request)]
         self.assertIn('Não foi possível adicionar o comentário. O texto não pode ficar vazio.', messages)
 
+    def test_whitespace_only_text_is_treated_as_empty(self):
+        """A text made only of spaces counts as empty: it is rejected and no comment is saved."""
+        response = self.client.post(self.url, {'text': '   '})
+        self.assertRedirects(response, self.item.get_absolute_url())
+        self.assertFalse(Comment.objects.exists())
+
     def test_nonexistent_item_returns_404(self):
         """Commenting on an item that does not exist returns 404."""
         response = self.client.post(reverse('comment_create', args=[9999]), {'text': 'Oi'})
