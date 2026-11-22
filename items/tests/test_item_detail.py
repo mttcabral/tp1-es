@@ -16,14 +16,14 @@ class ItemDetailContextTests(TestCase):
         cls.found_item = make_item(cls.finder)
         cls.lost_item = make_item(cls.finder, kind=Item.Kind.LOST)
 
-    def get_detail(self, item, username=None):
-        if username:
-            self.client.login(username=username, password='password123')
+    def get_detail(self, item, username):
+        """Logs in as username and opens the item page."""
+        self.client.login(username=username, password='password123')
         return self.client.get(item.get_absolute_url())
 
     def test_anonymous_user_gets_no_claim_form(self):
         """A visitor who is not logged in gets no claim form, pending flag or received claims."""
-        response = self.get_detail(self.found_item)
+        response = self.client.get(self.found_item.get_absolute_url())
         self.assertEqual(response.status_code, 200)
         self.assertNotIn('claim_form', response.context)
         self.assertNotIn('has_pending_claim', response.context)
