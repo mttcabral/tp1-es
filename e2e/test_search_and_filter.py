@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.utils import timezone
+from playwright.sync_api import expect
 
 from e2e.base import E2ETestCase
 from items.models import Item
@@ -9,6 +10,8 @@ User = get_user_model()
 
 
 class SearchAndFilterE2ETests(E2ETestCase):
+    """End-to-end tests for searching and filtering items."""
+
     def setUp(self):
         super().setUp()
         self.user = User.objects.create_user(
@@ -18,6 +21,7 @@ class SearchAndFilterE2ETests(E2ETestCase):
         )
 
     def test_search_and_category_filter_displays_expected_card(self):
+        """Ensure searching by query and selecting a category shows only the matching card."""
         Item.objects.create(
             author=self.user,
             title='Fone Bluetooth JBL',
@@ -50,6 +54,11 @@ class SearchAndFilterE2ETests(E2ETestCase):
         self.page.fill('input[name="q"]', 'Fone')
         self.page.select_option('select[name="category"]', Item.Category.ELECTRONICS)
         self.page.click('button[type="submit"]')
+
+        body = self.page.locator('body')
+        expect(body).to_contain_text('Fone Bluetooth JBL')
+        expect(body).not_to_contain_text('Fone com Fio Simples')
+        expect(body).not_to_contain_text('Caderno de Algoritmos')
 
         content = self.page.content()
         self.assertIn('Fone Bluetooth JBL', content)
