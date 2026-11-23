@@ -126,3 +126,53 @@ class ClaimActionTests(TestCase):
         self.client.login(username='owner', password='password123')
         response = self.client.post(self.reject_url)
         self.assert_non_pending_error(response, Claim.Status.REJECTED, Item.Status.OPEN)
+
+    def test_only_owner_can_reject_claim(self):
+        """Only the item owner can reject a claim (non-owner gets 403)."""
+        self.client.login(username='other', password='password123')
+        response = self.client.post(self.reject_url)
+        self.assertEqual(response.status_code, 403)
+        self.claim.refresh_from_db()
+        self.assertEqual(self.claim.status, Claim.Status.PENDING)
+
+    def test_anonymous_user_accepting_claim_is_redirected_to_login(self):
+        """A visitor who is not logged in is redirected to login when posting to accept a claim."""
+        response = self.client.post(self.accept_url)
+        self.assertRedirects(response, f"{reverse('login')}?next={self.accept_url}")
+        self.claim.refresh_from_db()
+        self.assertEqual(self.claim.status, Claim.Status.PENDING)
+
+    def test_anonymous_user_rejecting_claim_is_redirected_to_login(self):
+        """A visitor who is not logged in is redirected to login when posting to reject a claim."""
+        response = self.client.post(self.reject_url)
+        self.assertRedirects(response, f"{reverse('login')}?next={self.reject_url}")
+        self.claim.refresh_from_db()
+        self.assertEqual(self.claim.status, Claim.Status.PENDING)
+
+    def test_accepting_nonexistent_claim_returns_404(self):
+        """Accepting a claim that does not exist returns 404."""
+        self.client.login(username='owner', password='password123')
+        response = self.client.post(reverse('claim_accept', args=[9999]))
+        self.assertEqual(response.status_code, 404)
+
+    def test_rejecting_nonexistent_claim_returns_404(self):
+        """Rejecting a claim that does not exist returns 404."""
+        self.client.login(username='owner', password='password123')
+        response = self.client.post(reverse('claim_reject', args=[9999]))
+        self.assertEqual(response.status_code, 404)
+
+    def test_get_on_accept_claim_returns_405(self):
+        """Claim acceptance only accepts POST, so GET returns 405 Method Not Allowed."""
+        self.client.login(username='owner', password='password123')
+        response = self.client.get(self.accept_url)
+        self.assertEqual(response.status_code, 405)
+        self.claim.refresh_from_db()
+        self.assertEqual(self.claim.status, Claim.Status.PENDING)
+
+    def test_get_on_reject_claim_returns_405(self):
+        """Claim rejection only accepts POST, so GET returns 405 Method Not Allowed."""
+        self.client.login(username='owner', password='password123')
+        response = self.client.get(self.reject_url)
+        self.assertEqual(response.status_code, 405)
+        self.claim.refresh_from_db()
+        self.assertEqual(self.claim.status, Claim.Status.PENDING)
