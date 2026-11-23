@@ -1,10 +1,20 @@
 import datetime
+import io
+import shutil
+import tempfile
 
-from django.test import TestCase
+from django.contrib.auth import get_user_model
+from django.contrib.messages import get_messages
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import TestCase, override_settings
+from django.urls import reverse
 from django.utils import timezone
+from PIL import Image
 
 from items.forms import ItemForm
 from items.models import Item
+
+User = get_user_model()
 
 
 def item_data(**overrides):
@@ -50,3 +60,42 @@ class BootstrapFormMixinTests(TestCase):
         self.assertFalse(form.is_valid())
         self.assertIn('is-invalid', form.fields['title'].widget.attrs['class'])
         self.assertNotIn('is-invalid', form.fields['description'].widget.attrs['class'])
+
+
+def image_file(name='foto.jpg'):
+    buffer = io.BytesIO()
+    Image.new('RGB', (10, 10), 'red').save(buffer, 'JPEG')
+    return SimpleUploadedFile(name, buffer.getvalue(), content_type='image/jpeg')
+
+
+class ItemCreateViewTests(TestCase):
+    url = reverse('item_create')
+
+    def setUp(self):
+        self.user = User.objects.create_user('ana', 'ana@example.com', 'password123')
+
+    def test_visitor_is_redirected_to_login(self):
+        """Only logged-in users can register items."""
+        response = self.client.get(self.url)
+        self.assertRedirects(response, f"{reverse('login')}?next={self.url}")
+
+    def test_valid_post_saves_logged_user_as_author_with_open_status(self):
+        """The author comes from the session (never from the form) and new items start open."""
+        self.client.login(username='ana', password='password123')
+        response = self.client.post(self.url, item_data())
+        item = Item.objects.get()
+        self.assertRedirects(response, item.get_absolute_url())
+        self.assertEqual(item.author, self.user)
+        self.assertEqual(item.status, Item.Status.OPEN)
+        self.assertIn('Item cadastrado com sucesso!', [str(m) for m in get_messages(response.wsgi_request)])
+
+    def test_photo_upload_is_saved(self):
+        """An uploaded image is stored under media/items/ and linked to the item."""
+        media_root = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, media_root)
+        self.client.login(username='ana', password='password123')
+        with override_settings(MEDIA_ROOT=media_root):
+            self.client.post(self.url, {**item_data(), 'photo': image_file()})
+            item = Item.objects.get()
+            self.assertTrue(item.photo.name.startswith('items/'))
+            self.assertTrue(item.photo.storage.exists(item.photo.name))
