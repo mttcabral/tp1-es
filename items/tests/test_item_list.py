@@ -155,7 +155,7 @@ class ItemListViewTests(TestCase):
         self.assertEqual(len(res_page_1.context['items']), 12)
         self.assertContains(
             res_page_1,
-            f'href="?page=2&q=Notebook&kind={Item.Kind.LOST}&category={Item.Category.ELECTRONICS}"',
+            f'href="?page=2&q=Notebook&kind={Item.Kind.LOST}&category={Item.Category.ELECTRONICS}&location=&status="',
         )
 
         res_page_2 = self.client.get(
