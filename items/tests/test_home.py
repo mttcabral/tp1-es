@@ -11,6 +11,8 @@ User = get_user_model()
 
 
 class HomeViewTests(TestCase):
+    """Unit tests for the HomeView."""
+
     def setUp(self):
         self.user = User.objects.create_user(
             username='student_home',
@@ -31,6 +33,7 @@ class HomeViewTests(TestCase):
         )
 
     def test_home_displays_only_open_items(self):
+        """Ensure HomeView lists only items with OPEN status."""
         open_item = self._create_item('Carteira Aberta', status=Item.Status.OPEN)
         closed_item = self._create_item('Chave Resolvida', status=Item.Status.RESOLVED)
 
@@ -42,6 +45,7 @@ class HomeViewTests(TestCase):
         self.assertNotIn(closed_item, recent_items)
 
     def test_home_displays_at_most_eight_items(self):
+        """Ensure HomeView limits recent items to at most 8."""
         for i in range(10):
             self._create_item(f'Item {i}')
 
@@ -51,6 +55,7 @@ class HomeViewTests(TestCase):
         self.assertEqual(len(recent_items), 8)
 
     def test_home_orders_items_from_newest_to_oldest(self):
+        """Ensure HomeView orders items from newest to oldest."""
         base_time = timezone.now()
         items = []
         for i in range(3):
@@ -60,6 +65,11 @@ class HomeViewTests(TestCase):
             )
             item.refresh_from_db()
             items.append(item)
+
+        response = self.client.get(reverse('home'))
+        recent_items = list(response.context['recent_items'])
+
+        self.assertEqual(recent_items, [items[2], items[1], items[0]])
 
         response = self.client.get(reverse('home'))
         recent_items = list(response.context['recent_items'])
