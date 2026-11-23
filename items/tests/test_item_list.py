@@ -64,7 +64,7 @@ class ItemListViewTests(TestCase):
         self.assertEqual(items, [match])
         self.assertNotIn(other, items)
 
-def test_filter_by_kind(self):
+    def test_filter_by_kind(self):
         """Ensure kind filter returns only items with matching kind."""
         target = self._create_item(title='Fone Achado', kind=Item.Kind.FOUND)
         self._create_item(title='Fone Perdido', kind=Item.Kind.LOST)
